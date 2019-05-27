@@ -1,0 +1,46 @@
+version: '2'
+
+services:
+  rocketchat1:
+    image: rocketchat/rocket.chat:0.65.1
+    restart: unless-stopped
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - PORT=3000
+      - ROOT_URL=http://192.168.64.28
+      - MONGO_URL=mongodb://mongo:27017/rocketchat
+      - MONGO_OPLOG_URL=mongodb://mongo:27017/local
+    depends_on:
+      - mongo
+
+  rocketchat2:
+    image: rocketchat/rocket.chat:0.65.1
+    restart: unless-stopped
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - PORT=3000
+      - ROOT_URL=http://192.168.64.28
+      - MONGO_URL=mongodb://mongo:27017/rocketchat
+      - MONGO_OPLOG_URL=mongodb://mongo:27017/local
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    restart: unless-stopped
+    volumes:
+     - ./data/runtime/db:/data/db
+     - ./data/dump:/dump
+    ports:
+     - 27017:27017
+    command: mongod --smallfiles --oplogSize 128 --replSet rs0
+
+  haproxy:
+    image: haproxy:1.4.27
+    restart: unless-stopped
+    volumes:
+     - ./haproxy.conf:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+     - 80:80
